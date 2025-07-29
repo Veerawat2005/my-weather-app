@@ -7,6 +7,7 @@ body {
     align-items: center;
     min-height: 100vh;
     margin: 0;
+    transition: background 0.5s ease;
 }
 .app-container {
     background: #003554;
@@ -33,3 +34,11 @@ h1 { color: #00A6FB; }
 .weather-info { margin-top: 1.5rem; min-height: 150px; }
 .weather-info .temp { font-size: 3rem; font-weight: bold; margin: 0.5rem 0; }
 .error { color: #ff4d4d; font-weight: bold; }
+
+.weather-info img {
+    animation: fadeIn 0.5s ease-in-out;
+}
+@keyframes fadeIn {
+    from { opacity: 0; transform: scale(0.95); }
+    to { opacity: 1; transform: scale(1); }
+}
