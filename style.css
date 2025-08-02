@@ -1,5 +1,5 @@
 body {
-    background: #051923;
+    background: radial-gradient(ellipse at center, #3f4964 30%, #05141a 200%);
     color: #E0E1DD;
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
     display: flex;
@@ -7,10 +7,10 @@ body {
     align-items: center;
     min-height: 100vh;
     margin: 0;
-    transition: background 0.5s ease;
 }
+
 .app-container {
-    background: #003554;
+    background: linear-gradient(180deg,  #4f5bb7 0%, #45b2cd 150%);
     padding: 2rem;
     border-radius: 1rem;
     box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
@@ -18,27 +18,143 @@ body {
     max-width: 400px;
     text-align: center;
 }
-h1 { color: #00A6FB; }
+
+h1 { color: #ffffff; }
+
 #search-form { display: flex; gap: 0.5rem; margin: 1.5rem 0; }
+
 #city-input {
     flex-grow: 1; padding: 0.75rem; border: 1px solid #006494;
-    border-radius: 0.5rem; background: #051923; color: #E0E1DD;
+    border-radius: 0.5rem; background: #ffffff; color: #3d3d3d;
     font-size: 1rem;
 }
+
 #search-form button {
-    padding: 0.75rem 1rem; background-color: #00A6FB; color: #051923;
+    padding: 0.75rem 1rem; background-color: #ffffff; color: #3d3d3d;
     border: none; border-radius: 0.5rem; font-size: 1rem; font-weight: bold;
     cursor: pointer; transition: background-color 0.2s;
 }
+
 #search-form button:hover { background-color: #0582CA; }
-.weather-info { margin-top: 1.5rem; min-height: 150px; }
+
+.weather-info {
+    margin-top: 1.5rem;
+    min-height: 150px;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.5s ease, transform 0.5s ease;
+}
+
+.weather-info.show {
+    opacity: 1;
+    transform: translateY(0);
+}
+
 .weather-info .temp { font-size: 3rem; font-weight: bold; margin: 0.5rem 0; }
+
 .error { color: #ff4d4d; font-weight: bold; }
 
-.weather-info img {
-    animation: fadeIn 0.5s ease-in-out;
+/* Add dynamic background classes */
+.cold {
+    background: linear-gradient(180deg, #3a7bd5, #00d2ff); 
 }
-@keyframes fadeIn {
-    from { opacity: 0; transform: scale(0.95); }
-    to { opacity: 1; transform: scale(1); }
+
+.mild {
+    background: linear-gradient(180deg, #4f5bb7, #45b2cd); /
 }
+
+.hot {
+    background: linear-gradient(180deg, #ff512f, #dd2476);
+}
+
+.forecast-container {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 1rem;
+    overflow-x: auto;
+    padding-bottom: 0.5rem;
+    scrollbar-width: thin; 
+    scrollbar-color: #c6dbe7 rgba(244, 0, 0, 0.2);
+}
+
+.forecast-item {
+    flex: 0 0 auto;
+    min-width: 60px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 0.5rem;
+    padding: 0.5rem;
+    text-align: center;
+    font-size: 0.9rem;
+}
+
+#weather-info-container {
+    overflow-x: auto;
+}
+
+/* Animation ปรับ fade-in แบบนุ่มนวล */
+.weather-info.show {
+    animation: fadeInUp 0.5s ease forwards;
+}
+
+@keyframes fadeInUp {
+    0% {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* เพิ่ม transition ให้พื้นหลัง container ละมุน */
+.app-container {
+    transition: background 1s ease;
+}
+
+/* กลางวัน (day) */
+.day.cold {
+    background: linear-gradient(180deg, #a3cef1, #2980b9);
+}
+
+.day.mild {
+    background: linear-gradient(180deg, #87ceeb, #00aaff);
+}
+
+.day.hot {
+    background: linear-gradient(180deg,  #ff7e5f, #feb47b);
+}
+
+/* กลางคืน (night) */
+.night.cold {
+    background: linear-gradient(180deg, #2c3e50, #4ca1af);
+}
+
+.night.mild {
+    background: linear-gradient(180deg, #34495e, #2c3e50);
+}
+
+.night.hot {
+    background: linear-gradient(180deg, #aa076b, #61045f);
+}
+
+/* ปรับปุ่มค้นหา */
+#search-form button {
+    box-shadow: 0 4px 8px rgba(5, 130, 202, 0.3);
+}
+
+#search-form button:hover {
+    box-shadow: 0 6px 12px rgba(39, 40, 41, 0.5);
+}
+
+/* ปรับ input */
+#city-input {
+    transition: border-color 0.3s;
+}
+
+#city-input:focus {
+    border-color: #0582CA;
+    outline: none;
+    box-shadow: 0 0 8px #0582CA;
+}
+

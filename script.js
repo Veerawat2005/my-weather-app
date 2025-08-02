@@ -1,102 +1,134 @@
-const apiKey = '4dcc6d7857ecd6b4b07b89d38a917d82';
+const apiKey = '69df9ace38872fda3c377894709c9738';
 
 const searchForm = document.querySelector('#search-form');
 const cityInput = document.querySelector('#city-input');
 const weatherInfoContainer = document.querySelector('#weather-info-container');
+const container = document.querySelector('.app-container');
 
 searchForm.addEventListener('submit', (event) => {
     event.preventDefault();
-
     const cityName = cityInput.value.trim();
-
     if (cityName) {
         getWeather(cityName);
     } else {
-        alert('กรุณาป้อนชื่อเมือง');
+        alert('กรุณาใส่ชื่อเมือง');
     }
 });
 
 async function getWeather(city) {
-    weatherInfoContainer.innerHTML = `<p>กำลังโหลดข้อมูล...</p>`;
-    const apiUrl = `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${apiKey}&units=metric&lang=th`;
+    localStorage.setItem('lastCity', city);
+
+    weatherInfoContainer.classList.remove('show');
+    weatherInfoContainer.innerHTML = `<p>กำลังดึงข้อมูล...</p>`;
+
+    const currentUrl = `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${apiKey}&units=metric&lang=th`;
+    const forecastUrl = `https://api.openweathermap.org/data/2.5/forecast?q=${city}&appid=${apiKey}&units=metric&lang=th`;
 
     try {
-        const response = await fetch(apiUrl);
-        if (!response.ok) {
-            throw new Error('ไม่พบข้อมูลเมืองนี้');
-        }
-        const data = await response.json();
-        displayWeather(data);
+        const [currentRes, forecastRes] = await Promise.all([
+            fetch(currentUrl),
+            fetch(forecastUrl)
+        ]);
+
+        if (!currentRes.ok || !forecastRes.ok) throw new Error('ไม่พบเมืองหรือเกิดข้อผิดพลาด');
+
+        const currentData = await currentRes.json();
+        const forecastData = await forecastRes.json();
+
+        displayWeather(currentData, forecastData.list);
     } catch (error) {
         weatherInfoContainer.innerHTML = `<p class="error">${error.message}</p>`;
+        weatherInfoContainer.classList.add('show');
     }
 }
 
-function displayWeather(data) {
-    const { name, main, weather } = data;
+function displayWeather(current, forecastList) {
+    const { name, main, weather } = current;
     const { temp, humidity } = main;
     const { description, icon } = weather[0];
 
-    const weatherHtml = `
-        <h2 class="text-2xl font-bold">${name}</h2>
+    // ตรวจสอบกลางวันหรือกลางคืนจาก icon (ตัวท้าย d=day, n=night)
+    const isDay = icon.includes('d');
+
+    // ลบคลาสสีพื้นหลังเก่า
+    container.classList.remove('cold', 'mild', 'hot', 'day', 'night');
+
+    // ตั้งพื้นหลังตามอุณหภูมิ + กลางวัน/คืน
+    if (temp < 10) container.classList.add('cold');
+    else if (temp <= 25) container.classList.add('mild');
+    else container.classList.add('hot');
+
+    container.classList.add(isDay ? 'day' : 'night');
+
+    let html = `
+        <h2>${name}</h2>
         <img src="https://openweathermap.org/img/wn/${icon}@2x.png" alt="${description}">
         <p class="temp">${temp.toFixed(1)}°C</p>
         <p>${description}</p>
         <p>ความชื้น: ${humidity}%</p>
+        <h3>พยากรณ์อากาศล่วงหน้า 5 วัน</h3>
+        <div class="forecast-container">
     `;
-    weatherInfoContainer.innerHTML = weatherHtml;
+
+    const daily = forecastList.filter(f => f.dt_txt.includes("12:00:00"));
+    daily.forEach(f => {
+        const date = new Date(f.dt_txt);
+        const iconUrl = `https://openweathermap.org/img/wn/${f.weather[0].icon}.png`;
+        html += `
+            <div class="forecast-item">
+               <p>${date.toLocaleDateString('th-TH', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })}</p>
+                <img src="${iconUrl}" alt="${f.weather[0].description}">
+                <p>${f.main.temp.toFixed(0)}°C</p>
+            </div>
+        `;
+    });
+
+    html += `</div>`;
+    weatherInfoContainer.innerHTML = html;
+
+    setTimeout(() => {
+        weatherInfoContainer.classList.add('show');
+    }, 10);
 }
 
-const hour = new Date().getHours();
-document.body.style.background = hour >= 18 || hour <= 6 ? '#1e1e1e' : '#87CEEB';
-
-// เปลี่ยนพื้นหลังตามคำอธิบายอากาศ
-if (description.includes('ฝน')) {
-    document.body.style.background = '#4a5568'; // ฝนตก
-} else if (description.includes('แดด')) {
-    document.body.style.background = '#FFD700'; // แดดออก
-} else if (description.includes('เมฆ')) {
-    document.body.style.background = '#708090'; // เมฆครึ้ม
-} else {
-    document.body.style.background = '#87CEEB'; // ฟ้าแจ่ม
-}
-
-
-localStorage.setItem('lastCity', city);
-window.addEventListener('load', () => {
+// โหลดข้อมูลเมืองล่าสุดเมื่อเปิดหน้าเว็บ
+window.addEventListener('DOMContentLoaded', () => {
     const lastCity = localStorage.getItem('lastCity');
     if (lastCity) {
+        cityInput.value = lastCity;
         getWeather(lastCity);
     }
 });
 
-async function getForecast(city) {
-  const url = `https://api.openweathermap.org/data/2.5/forecast?q=${city}&appid=${apiKey}&units=metric&lang=th`;
-  try {
-    const response = await fetch(url);
-    const data = await response.json();
+function setWeatherBackground(weatherMain, icon) {
+    // ลบคลาสเก่าก่อน
+    container.classList.remove('clear', 'clouds', 'rain', 'snow', 'thunderstorm', 'night');
 
-    if (data.cod !== "200") {
-      throw new Error("ไม่พบข้อมูลพยากรณ์อากาศ");
+    const isNight = icon.includes('n');
+
+    if (isNight) {
+        container.classList.add('night');
+        return;
     }
 
-    if (!data.list || data.list.length === 0) {
-      throw new Error("ไม่มีข้อมูลพยากรณ์อากาศ");
+    switch(weatherMain.toLowerCase()) {
+        case 'clear':
+            container.classList.add('clear');
+            break;
+        case 'clouds':
+            container.classList.add('clouds');
+            break;
+        case 'rain':
+        case 'drizzle':
+            container.classList.add('rain');
+            break;
+        case 'snow':
+            container.classList.add('snow');
+            break;
+        case 'thunderstorm':
+            container.classList.add('thunderstorm');
+            break;
+        default:
+            container.classList.add('clear');
     }
-
-    console.log(`พยากรณ์ ${data.list.length} รายการสำหรับเมือง ${data.city.name}`);
-
-    // ดึงข้อมูลเที่ยงวันของแต่ละวัน
-    const forecastList = data.list.filter(item => item.dt_txt.includes("12:00:00"));
-
-    forecastList.forEach(item => {
-      console.log(`${item.dt_txt}: ${item.main.temp}°C, ${item.weather[0].description}`);
-    });
-
-    // แสดงผล หรือประมวลผลต่อไป
-  } catch (error) {
-    console.error(error.message);
-  }
 }
-const city = 'Bangkok'; // เปลี่ยนเป็นชื่อเมืองที่ต้องการ
-getForecast(city);

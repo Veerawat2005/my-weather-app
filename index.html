@@ -1,25 +1,28 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Weather App</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css" />
 </head>
 <body>
     <div class="app-container">
         <h1>Weather App</h1>
-        <form id="search-form">
-            <input type="text" id="city-input" placeholder="ค้นหาชื่อเมือง..." required>
+        <form id="search-form" autocomplete="off">
+            <input
+                type="text"
+                id="city-input"
+                placeholder="ค้นหาชื่อเมือง..."
+                required
+                spellcheck="false"
+                autocapitalize="words"
+            />
             <button type="submit">ค้นหา</button>
         </form>
-        <div id="weather-info-container" class="weather-info">
-            <!-- ข้อมูลสภาพอากาศจะแสดงที่นี่ -->
-        </div>
-    </div>
-    <script src="script.js"></script>
 
-    <div id="forecast-container"></div>
-    
+        <div id="weather-info-container" class="weather-info"></div>
+
+    <script src="script.js"></script>
 </body>
 </html>
